@@ -1,0 +1,4 @@
+#!/bin/bash
+
+service salt-minion start
+echo master: $master >> /etc/salt/minion

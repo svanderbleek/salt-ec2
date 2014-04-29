@@ -1,0 +1,3 @@
+#!/bin/bash
+
+service salt-master start
