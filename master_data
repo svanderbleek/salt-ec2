@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo auto_accept: True >> /etc/salt/minion
+change-resource-record-sets --hosted-zone-id $zone_id --change-batch $change
+service salt-master start

@@ -1,26 +1,33 @@
-import os
+import sys
 import time
 import boto
-from string import Template
 from boto.ec2.autoscale import LaunchConfiguration
 from boto.ec2.autoscale import AutoScalingGroup
-
-timestamp = int(time.time())
-master = 'salt-master-%d' % timestamp
-minion = 'salt-minion-%d' % timestamp
-image = os.environ['SALT_AMI']
+from data import user_data, env
+from identity import identify
 
 autoscale = boto.connect_autoscale()
 ec2 = boto.connect_ec2()
+route53 = boto.connect_route53()
+
+ami_timestamp = sys.argv[1]
+master_ami = 'salt-master-%s' % ami_timestamp
+minion_ami = 'salt-minion-%s' % ami_timestamp
+images = ec2.get_all_images(owners=['self'])
+master_ami = [image.id for image in images if image.name == master_ami][0]
+minion_ami = [image.id for image in images if image.name == minion_ami][0]
+
+master = identify('salt-master')
+minion = identify('salt-minion')
 
 master_security = ec2.create_security_group(master, master)
 minion_security = ec2.create_security_group(minion, minion)
 master_security.authorize(src_group=minion_security)
 
-master_data = open('master_user_data').read()
+master_data = user_data('master_data')
 master_config = LaunchConfiguration(
   name=master,
-  image_id=image,
+  image_id=master_ami,
   security_groups=[master_security.name],
   user_data=master_data,
   key_name='sandy'
@@ -35,14 +42,11 @@ master_group = AutoScalingGroup(
 )
 autoscale.create_auto_scaling_group(master_group)
 
-mapping = {'master': os.environ['SALT_MASTER_DNS']}
-template = open('minion_user_data.template').read()
-template = Template(template)
-data = template.substitute(mapping)
-minion_data = base64.b64encode(data)
+mapping = {'master': env('salt_master_dns')}
+minion_data = user_data('minion_data', mapping)
 minion_config = LaunchConfiguration(
   name=minion,
-  image_id=image,
+  image_id=minion_ami,
   security_groups=[minion_security.name],
   user_data=minion_data,
   key_name='sandy'
