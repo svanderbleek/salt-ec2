@@ -6,6 +6,8 @@ from boto.ec2.autoscale import AutoScalingGroup
 from data import user_data, env
 from identity import identify
 from region import region
+from access import create_policy
+from control import while_not_try
 
 autoscale = boto.ec2.autoscale.connect_to_region(region())
 ec2 = boto.ec2.connect_to_region(region())
@@ -37,7 +39,7 @@ master_config = LaunchConfiguration(
   key_name='sandy',
   instance_profile_name=master
 )
-autoscale.create_launch_configuration(master_config)
+while_not_try(lambda: autoscale.create_launch_configuration(master_config))
 master_group = AutoScalingGroup(
   group_name=master,
   launch_config=master_config,

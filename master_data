@@ -16,12 +16,12 @@ base:
 TOP
 
 cat >> /srv/salt/ab.sls << AB
-ab:
+httpd-tools:
   pkg:
     - installed
 AB
 
-HOSTNAME=curl -s http://169.254.169.254/latest/meta-data/public-hostname
+HOSTNAME=`ec2-metadata --public-hostname`
 cat >> /tmp/record.json << RECORD
 {
   "Changes": [{
@@ -40,6 +40,8 @@ cat >> /tmp/record.json << RECORD
 }
 RECORD
 
-change-resource-record-sets --hosted-zone-id $zone_id --change-batch file:///tmp/record.json
+ec2-metadata > /tmp/sanity-check
+
+aws route53 change-resource-record-sets --hosted-zone-id $zone_id --change-batch file:///tmp/record.json
 
 service salt-master start
