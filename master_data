@@ -1,5 +1,45 @@
 #!/bin/bash
 
-echo auto_accept: True >> /etc/salt/minion
-change-resource-record-sets --hosted-zone-id $zone_id --change-batch $change
+cat >> /etc/salt/master << MASTER
+auto_accept: True
+file_roots:
+  base:
+    - /srv/salt
+MASTER
+
+mkdir /srv/salt
+
+cat >> /srv/salt/top.sls << TOP
+base:
+  '*':
+    - ab
+TOP
+
+cat >> /srv/salt/ab.sls << AB
+ab:
+  pkg:
+    - installed
+AB
+
+HOSTNAME=curl -s http://169.254.169.254/latest/meta-data/public-hostname
+cat >> /tmp/record.json << RECORD
+{
+  "Changes": [{
+    "Action": "UPSERT",
+    "ResourceRecordSet": {
+      "Name": "$dns",
+      "Type": "CNAME",
+      "TTL": 60,
+      "ResourceRecords": [
+        {
+          "Value": "$$HOSTNAME"
+        }
+      ]
+    }
+  }]
+}
+RECORD
+
+change-resource-record-sets --hosted-zone-id $zone_id --change-batch file:///tmp/record.json
+
 service salt-master start

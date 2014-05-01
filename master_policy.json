@@ -1,0 +1,7 @@
+{
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "route53:ChangeResourceRecordSets",
+    "Resource": "*"
+  }]
+}

@@ -1,10 +1,11 @@
-import boto
+from boto import ec2
 import time
 from control import while_not_try
+from region import region, ami
 
-ec2 = boto.connect_ec2()
+ec2 = ec2.connect_to_region(region())
 
-aws_image = 'ami-fb8e9292'
+aws_image = ami()
 size = 't1.micro'
 
 def start_instance(name, data):

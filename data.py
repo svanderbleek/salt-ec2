@@ -13,4 +13,4 @@ def user_data(data, mapping=None, encode=False):
 
 def env(key):
   key = key.upper()
-  return os.environ(key)
+  return os.environ[key]

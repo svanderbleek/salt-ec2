@@ -2,4 +2,4 @@
 
 yum update -y
 yum install -y --enablerepo=epel salt-$image_type
-aws sqs send-message --region us-east-1 --queue-url $queue_url --message-body complete
+aws sqs send-message --region $region --queue-url $queue_url --message-body complete

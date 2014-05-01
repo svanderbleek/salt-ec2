@@ -1,12 +1,13 @@
-import boto
 import time
+from boto import sqs
 from multiprocessing import Pool
 from identity import identify
 from data import user_data
 from access import create_policy, delete_policy
 from instance import start_instance, wait_instance, stop_instance
+from region import region
 
-sqs = boto.connect_sqs()
+sqs = sqs.connect_to_region(region())
 
 def build_image(image_type):
   name, data, queue = setup(image_type)
@@ -23,7 +24,7 @@ def setup(image_type):
   print(name)
   create_policy(name, 'image_policy.json')
   queue = sqs.create_queue(name)
-  mapping = {'queue_url': queue.url, 'image_type': image_type}
+  mapping = {'region': region(), 'queue_url': queue.url, 'image_type': image_type}
   data = user_data('image_data', mapping)
   return name, data, queue
 
