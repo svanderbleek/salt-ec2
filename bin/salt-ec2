@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+
+import sys
+
+print(sys.path)
+
+from optparse import OptionParser
+from list import list
+
+COMMAND = 0
+LIST = 'list'
+
+parser = OptionParser()
+
+options, arguments = parser.parse_args()
+
+if arguments[COMMAND] == LIST:
+  print(list())
